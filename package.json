@@ -1,0 +1,12 @@
+{
+    "name": "gourmet-bites",
+    "version": "1.0.0",
+    "description": "Restaurant ordering app with SMS verification",
+    "scripts": {
+        "start": "npx http-server -p 3000 -c-1",
+        "serve": "npx http-server -p 3000 -c-1"
+    },
+    "dependencies": {
+        "@supabase/supabase-js": "^2.86.0"
+    }
+}
