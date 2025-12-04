@@ -358,6 +358,9 @@ function loginAdmin(username) {
     updateUserUI({ displayName: "Administrator", photoURL: null });
     enterApp();
     renderMenu(); // Re-render to show edit buttons
+
+    // Navigate to admin route
+    Router.navigate('/admin');
 }
 
 function loginWithPhone(phoneNumber) {
@@ -372,6 +375,10 @@ function loginWithPhone(phoneNumber) {
     const displayName = phoneNumber;
     updateUserUI({ displayName: displayName, photoURL: null });
     enterApp();
+
+    // Navigate to user route with encrypted ID
+    const encryptedId = encryptUserId(phoneNumber);
+    Router.navigate('/user/' + encryptedId);
 }
 
 function enterApp() {
@@ -968,3 +975,136 @@ window.closeOrderSuccess = () => {
     const modal = document.getElementById('order-success-modal');
     if (modal) modal.classList.add('hidden');
 };
+
+// ============================================
+// URL ROUTER SYSTEM
+// ============================================
+
+// ID Encryption for URLs (Base64 + XOR)
+const ENCRYPTION_KEY = 'gourmet-bites-2024';
+
+function encryptUserId(id) {
+    const str = String(id);
+    let encrypted = '';
+    for (let i = 0; i < str.length; i++) {
+        encrypted += String.fromCharCode(str.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length));
+    }
+    return btoa(encrypted).replace(/\//g, '_').replace(/\+/g, '-').replace(/=/g, '');
+}
+
+function decryptUserId(encrypted) {
+    try {
+        // Restore base64 padding and special chars
+        let base64 = encrypted.replace(/_/g, '/').replace(/-/g, '+');
+        while (base64.length % 4) base64 += '=';
+
+        const decoded = atob(base64);
+        let decrypted = '';
+        for (let i = 0; i < decoded.length; i++) {
+            decrypted += String.fromCharCode(decoded.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length));
+        }
+        return decrypted;
+    } catch (e) {
+        console.error('Decryption failed:', e);
+        return null;
+    }
+}
+
+// Router
+const Router = {
+    init() {
+        window.addEventListener('hashchange', this.handleRoute.bind(this));
+        // Handle initial route after a small delay to ensure DOM is ready
+        setTimeout(() => this.handleRoute(), 100);
+    },
+
+    handleRoute() {
+        const hash = window.location.hash.slice(1) || '/';
+        const parts = hash.split('/').filter(Boolean);
+        const [path, param] = parts;
+
+        console.log('📍 Route:', hash, '| User:', state.user, '| Admin:', state.isAdmin);
+
+        switch (path) {
+            case 'admin':
+                this.handleAdminRoute();
+                break;
+            case 'user':
+                this.handleUserRoute(param);
+                break;
+            case 'menu':
+                this.handleMenuRoute();
+                break;
+            default:
+                this.handleDefaultRoute();
+        }
+    },
+
+    handleAdminRoute() {
+        console.log('🔐 Admin route requested');
+        if (!state.user) {
+            // Not logged in - show login page and auto-open admin modal
+            showView('login');
+            setTimeout(() => {
+                const adminLink = document.getElementById('admin-login-link-main');
+                if (adminLink) adminLink.click();
+            }, 200);
+        } else if (state.isAdmin) {
+            // Already logged in as admin
+            showView('main');
+        } else {
+            // Logged in as regular user, can't access admin
+            this.navigate('/menu');
+        }
+    },
+
+    handleUserRoute(encryptedId) {
+        console.log('👤 User route requested:', encryptedId);
+        if (!state.user) {
+            // Not logged in - redirect to login
+            showView('login');
+        } else {
+            // Logged in - show main view
+            showView('main');
+            // Optional: verify the encrypted ID matches current user
+            if (encryptedId) {
+                const decryptedId = decryptUserId(encryptedId);
+                console.log('Decrypted user ID:', decryptedId);
+            }
+        }
+    },
+
+    handleMenuRoute() {
+        console.log('🍔 Menu route requested');
+        if (!state.user) {
+            this.navigate('/');
+        } else {
+            showView('main');
+            switchTab('menu');
+        }
+    },
+
+    handleDefaultRoute() {
+        console.log('🏠 Default route');
+        if (state.user) {
+            // User is logged in, go to menu
+            if (state.isAdmin) {
+                this.navigate('/admin');
+            } else {
+                const encryptedId = encryptUserId(state.user);
+                this.navigate('/user/' + encryptedId);
+            }
+        } else {
+            // Not logged in, stay on login page
+            showView('login');
+        }
+    },
+
+    navigate(path) {
+        window.location.hash = path;
+    }
+};
+
+// Initialize router when DOM is ready
+Router.init();
+
