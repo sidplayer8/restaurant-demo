@@ -9,7 +9,7 @@ window.sendTwilioVerificationCode = async function (phoneNumber) {
     console.log("📱 Sending verification code via Twilio...");
 
     const sendButton = document.getElementById('send-code-btn');
-    const countryCode = '+65'; // Singapore
+    const countryCode = document.getElementById('country-code')?.value || '+65';
     const cleanPhone = phoneNumber.replace(/\D/g, '');
     const fullPhone = countryCode + cleanPhone;
 
