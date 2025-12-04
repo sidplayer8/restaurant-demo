@@ -419,6 +419,42 @@ function resetApp() {
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
         <span>Sign in with Google</span>
     `;
+
+    // Navigate to login route
+    if (typeof Router !== 'undefined' && window.location.hash !== '#/login') {
+        Router.navigate('/login');
+    }
+}
+
+// Helper function to show views
+function showView(viewName) {
+    console.log('🔄 Showing view:', viewName);
+
+    // Hide all views
+    app.loginView.classList.remove('active');
+    app.loginView.classList.add('hidden');
+    app.mainView.classList.remove('active');
+    app.mainView.classList.add('hidden');
+    app.profileView.classList.remove('active');
+    app.profileView.classList.add('hidden');
+
+    // Show requested view
+    if (viewName === 'login') {
+        app.loginView.classList.remove('hidden');
+        setTimeout(() => app.loginView.classList.add('active'), 50);
+        app.bottomNav.classList.add('hidden');
+    } else if (viewName === 'main') {
+        app.mainView.classList.remove('hidden');
+        setTimeout(() => app.mainView.classList.add('active'), 50);
+        app.bottomNav.classList.remove('hidden');
+        // Default to menu tab
+        if (!state.activeTab) state.activeTab = 'menu';
+        switchTab(state.activeTab);
+    } else if (viewName === 'profile') {
+        app.profileView.classList.remove('hidden');
+        setTimeout(() => app.profileView.classList.add('active'), 50);
+        app.bottomNav.classList.remove('hidden');
+    }
 }
 
 function updateUserUI(user) {
@@ -1068,18 +1104,21 @@ const Router = {
     handleAdminRoute() {
         console.log('🔐 Admin route requested');
         if (!state.user) {
-            // Not logged in - show login page and auto-open admin modal
-            showView('login');
+            // Not logged in - redirect to login and auto-open admin modal
+            this.navigate('/login');
             setTimeout(() => {
                 const adminLink = document.getElementById('admin-login-link-main');
                 if (adminLink) adminLink.click();
-            }, 200);
+            }, 300);
         } else if (state.isAdmin) {
-            // Already logged in as admin
+            // Authorized - show admin view
             showView('main');
         } else {
-            // Logged in as regular user, can't access admin
-            this.navigate('/menu');
+            // Logged in as customer, not authorized for admin
+            console.warn('⚠️ Unauthorized admin access attempt');
+            alert('Admin access denied. You are logged in as a customer.');
+            const encryptedId = encryptUserId(state.user);
+            this.navigate('/user/' + encryptedId);
         }
     },
 
@@ -1087,7 +1126,7 @@ const Router = {
         console.log('👤 User route requested:', encryptedId);
         if (!state.user) {
             // Not logged in - redirect to login
-            showView('login');
+            this.navigate('/login');
         } else {
             // Logged in - show main view
             showView('main');
