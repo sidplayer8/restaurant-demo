@@ -171,12 +171,11 @@ function setupEventListeners() {
             e.preventDefault();
             const phone = app.phoneInput.value.trim();
             if (phone.length >= 8) {
-                // Try Firebase Phone Auth first
-                if (window.sendFirebaseVerificationCode) {
-                    window.sendFirebaseVerificationCode(phone);
+                // Use Twilio SMS Auth
+                if (window.sendTwilioVerificationCode) {
+                    window.sendTwilioVerificationCode(phone);
                 } else {
-                    // Fallback to mock SMS
-                    sendVerificationCode(phone);
+                    alert("SMS service not available. Please try again.");
                 }
             } else {
                 alert("Please enter a valid phone number (at least 8 digits).");
@@ -195,16 +194,11 @@ function setupEventListeners() {
             e.preventDefault();
             const enteredCode = document.getElementById('verification-code').value.trim();
 
-            // Try Firebase SMS verification first
-            if (window.verifyFirebaseSMSCode) {
-                window.verifyFirebaseSMSCode(enteredCode);
-            } else if (enteredCode === generatedCode) {
-                // Fallback to mock verification
-                loginWithPhone(pendingPhone);
-                generatedCode = null;
-                pendingPhone = null;
+            // Use Twilio SMS verification
+            if (window.verifyTwilioSMSCode) {
+                window.verifyTwilioSMSCode(enteredCode);
             } else {
-                alert("Invalid verification code. Please try again.");
+                alert("SMS verification not available. Please try again.");
             }
         });
     }
