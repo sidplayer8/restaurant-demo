@@ -25,17 +25,22 @@
 
                 <button id="google-login-btn" class="btn-google">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
+                    <span>Sign in with Google</span>
+                </button>
+                <div class="input-group">
+                    <span class="material-icons-round">lock</span>
                     <input type="text" id="verification-code" placeholder="6-digit code" maxlength="6">
+                </div>
+                <button type="button" id="verify-code-btn" class="btn-primary">Verify</button>
+                <button type="button" id="back-to-phone" class="btn-secondary">Back</button>
             </div>
-            <button type="button" id="verify-code-btn" class="btn-primary">Verify</button>
-            <button type="button" id="back-to-phone" class="btn-secondary">Back</button>
-    </div>
-    </form>
+            </form>
 
-    <p class="disclaimer" style="margin-top: 24px;">
-        <a href="#/admin" id="admin-login-link-main" style="color: var(--primary); text-decoration: none;">Admin?
-            Click here to login</a>
-    </p>
+            <p class="disclaimer" style="margin-top: 24px;">
+                <a href="#/admin" id="admin-login-link-main"
+                    style="color: var(--primary); text-decoration: none;">Admin?
+                    Click here to login</a>
+            </p>
     </div>
     </section>
 

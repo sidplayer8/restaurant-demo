@@ -1,42 +1,57 @@
 // Twilio SMS Authentication
 console.log("📱 Twilio SMS Auth Loading...");
 
-    }
+// Global State
+window.currentVerifyingPhone = null;
+window.currentSentCode = null; // Store code for verification
 
-try {
-    const response = await fetch('/api/sms/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: fullPhone })
-    });
+window.sendTwilioVerificationCode = async function (phoneNumber) {
+    console.log("📱 Sending verification code via Twilio...");
 
-    const data = await response.json();
+    const sendButton = document.getElementById('send-code-btn');
+    const countryCode = '+65'; // Singapore
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    const fullPhone = countryCode + cleanPhone;
 
-    if (data.success) {
-        console.log("✅ SMS sent successfully!");
-
-        // Store the code (temporary MVP solution)
-        window.currentSentCode = data.code;
-
-        // Transition UI
-        document.getElementById('phone-step').classList.add('hidden');
-        document.getElementById('verification-step').classList.remove('hidden');
-        document.getElementById('phone-display').innerText = fullPhone;
-
-        // Store phone for verification
-        window.currentVerifyingPhone = fullPhone;
-    } else {
-        throw new Error(data.error || 'Failed to send SMS');
-    }
-} catch (error) {
-    console.error("❌ SMS send failed:", error);
-    alert("Failed to send SMS: " + error.message);
-} finally {
     if (sendButton) {
-        sendButton.disabled = false;
-        sendButton.textContent = 'Send Code';
+        sendButton.disabled = true;
+        sendButton.textContent = 'Sending...';
     }
-}
+
+    try {
+        const response = await fetch('/api/sms/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phoneNumber: fullPhone })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log("✅ SMS sent successfully!");
+
+            // Store the code (temporary MVP solution)
+            window.currentSentCode = data.code;
+
+            // Transition UI
+            document.getElementById('phone-step').classList.add('hidden');
+            document.getElementById('verification-step').classList.remove('hidden');
+            document.getElementById('phone-display').innerText = fullPhone;
+
+            // Store phone for verification
+            window.currentVerifyingPhone = fullPhone;
+        } else {
+            throw new Error(data.error || 'Failed to send SMS');
+        }
+    } catch (error) {
+        console.error("❌ SMS send failed:", error);
+        alert("Failed to send SMS: " + error.message);
+    } finally {
+        if (sendButton) {
+            sendButton.disabled = false;
+            sendButton.textContent = 'Send Code';
+        }
+    }
 };
 
 window.verifyTwilioSMSCode = async function (code) {
