@@ -724,7 +724,7 @@ window.openCustomize = (id) => {
     state.currentCustomizingItem = item;
 
     app.customizeTitle.textContent = item.name;
-    app.customizeTotal.textContent = `$${item.price.toFixed(2)}`;
+    app.customizeTotal.textContent = `$${parseFloat(item.price).toFixed(2)}`;
     app.specialInstructions.value = '';
 
     // Allergens
