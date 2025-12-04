@@ -14,8 +14,9 @@ export default async function handler(req, res) {
     // Generate 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Store code in memory (temporary - for MVP testing)
-    // TODO: Use Vercel KV or Redis for production
+    // NOTE: Vercel serverless functions are stateless, so global storage doesn't work
+    // For production, use Vercel KV or Redis
+    // For now, return code in response for testing
     global.smsCodes = global.smsCodes || {};
     global.smsCodes[phoneNumber] = {
         code,
@@ -35,7 +36,9 @@ export default async function handler(req, res) {
         });
 
         console.log(`✅ SMS sent to ${phoneNumber} with code ${code}`);
-        res.status(200).json({ success: true });
+
+        // TEMPORARY: Return code for MVP testing (remove in production)
+        res.status(200).json({ success: true, code: code });
     } catch (error) {
         console.error('❌ Twilio error:', error);
         res.status(500).json({ error: error.message });

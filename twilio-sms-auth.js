@@ -3,6 +3,7 @@ console.log("📱 Twilio SMS Auth Loading...");
 
 // Global State
 window.currentVerifyingPhone = null;
+window.currentSentCode = null; // Store code for verification
 
 window.sendTwilioVerificationCode = async function (phoneNumber) {
     console.log("📱 Sending verification code via Twilio...");
@@ -28,6 +29,9 @@ window.sendTwilioVerificationCode = async function (phoneNumber) {
 
         if (data.success) {
             console.log("✅ SMS sent successfully!");
+
+            // Store the code (temporary MVP solution)
+            window.currentSentCode = data.code;
 
             // Transition UI
             document.getElementById('phone-step').classList.add('hidden');
@@ -70,7 +74,8 @@ window.verifyTwilioSMSCode = async function (code) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 phoneNumber: window.currentVerifyingPhone,
-                code: code
+                code: code,
+                sentCode: window.currentSentCode // Send stored code for verification
             })
         });
 
