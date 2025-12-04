@@ -2,21 +2,17 @@
 // import { auth, provider } from "./firebase-config.js";
 // import { signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// Menu Data (Fetched from Supabase)
+// Menu Data (Fetched from Vercel Postgres)
 let MENU_DATA = [];
 
-// Fetch Menu from Supabase
+// Fetch Menu from Vercel Postgres API
 async function fetchMenu() {
     try {
-        const { data, error } = await supabase
-            .from('menu_items')
-            .select('*')
-            .order('id', { ascending: true });
+        const response = await fetch('/api/menu');
+        if (!response.ok) throw new Error('Failed to fetch menu');
 
-        if (error) throw error;
-
-        MENU_DATA = data;
-        console.log("✅ Menu loaded from Supabase:", MENU_DATA.length, "items");
+        MENU_DATA = await response.json();
+        console.log("✅ Menu loaded from database:", MENU_DATA.length, "items");
         renderMenu(); // Re-render menu after fetching
     } catch (error) {
         console.error("❌ Error fetching menu:", error);
