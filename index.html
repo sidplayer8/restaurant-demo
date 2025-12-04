@@ -33,9 +33,17 @@
 
                 <form id="login-form">
                     <div id="phone-step">
-                        <div class="input-group">
+                        <div class="input-group" style="display: flex; align-items: center; gap: 8px;">
                             <span class="material-icons-round">phone</span>
-                            <input type="tel" id="phone" placeholder="Phone number" required>
+                            <select id="country-code"
+                                style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 12px; border-radius: 12px; font-family: inherit; cursor: pointer;">
+                                <option value="+1">🇺🇸 +1</option>
+                                <option value="+44">🇬🇧 +44</option>
+                                <option value="+65" selected>🇸🇬 +65</option>
+                                <option value="+91">🇮🇳 +91</option>
+                                <option value="+61">🇦🇺 +61</option>
+                            </select>
+                            <input type="tel" id="phone" placeholder="Phone number" required style="flex: 1;">
                         </div>
                         <button type="button" id="send-code-btn" class="btn-primary">Send Code</button>
                     </div>
