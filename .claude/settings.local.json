@@ -18,7 +18,8 @@
       "Bash(vercel --prod:*)",
       "Bash(node fix-menu-items.js:*)",
       "Bash(curl:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
