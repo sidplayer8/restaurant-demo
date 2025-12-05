@@ -539,218 +539,481 @@
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" id="cancel-btn">Cancel</button>
                     <button type="submit" class="btn-save">Save Item</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        // Admin credentials
-        const ADMIN_CREDENTIALS = {
-            username: 'sidplayer8',
-            password: 'adithidumb'
-        };
-
-        // State
-        let menuItems = [];
-        let editingItemId = null;
-
-        // Elements
-        const loginScreen = document.getElementById('login-screen');
-        const dashboard = document.getElementById('dashboard');
-        const loginBtn = document.getElementById('login-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const menuGrid = document.getElementById('menu-grid');
-        const itemModal = document.getElementById('item-modal');
-        const itemForm = document.getElementById('item-form');
-        const closeModal = document.getElementById('close-modal');
-        const cancelBtn = document.getElementById('cancel-btn');
-        const modalTitle = document.getElementById('modal-title');
-
-        // Check if already logged in
-        if (localStorage.getItem('adminLoggedIn') === 'true') {
-            showDashboard();
-        }
-
-        // Login
-        loginBtn.addEventListener('click', () => {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-
-            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-                localStorage.setItem('adminLoggedIn', 'true');
-                showDashboard();
-            } else {
-                alert('Invalid credentials. Access denied.');
-            }
-        });
-
-        // Enter key login
-        document.getElementById('password').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') loginBtn.click();
-        });
-
-        // Logout
-        logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('adminLoggedIn');
-            showLogin();
-        });
-
-        // Show/Hide screens
-        function showLogin() {
-            loginScreen.classList.add('active');
-            dashboard.classList.remove('active');
-        }
-
-        function showDashboard() {
-            loginScreen.classList.remove('active');
-            dashboard.classList.add('active');
-            loadMenu();
-        }
-
-        // Load menu from API
-        async function loadMenu() {
-            try {
-                // Point to the MAIN customer site API
-                const response = await fetch('https://gourmet-bites.vercel.app/api/menu?t=' + new Date().getTime());
-                if (response.ok) {
-                    const data = await response.json();
-                    menuItems = data.map(item => ({
-                        ...item,
-                        price: parseFloat(item.price) || 0
-                    }));
-                } else {
-                    console.error('Failed to load menu:', response.status);
-                    // Silent fallback
-                    menuItems = getDefaultMenu();
-                }
-                renderMenu();
-            } catch (error) {
-                console.error('Error loading menu:', error);
-                // Silent fallback
-
-                if (item) {
-                    document.getElementById('item-name').value = item.name;
-                    document.getElementById('item-description').value = item.description;
-                    document.getElementById('item-price').value = item.price;
-                    document.getElementById('item-category').value = item.category;
-                    document.getElementById('item-image').value = item.image;
-                } else {
-                    itemForm.reset();
-                }
-
-                itemModal.classList.add('active');
-            }
-
-            function closeModalFn() {
-                itemModal.classList.remove('active');
-                editingItemId = null;
-                itemForm.reset();
-            }
-
-            closeModal.addEventListener('click', closeModalFn);
-            cancelBtn.addEventListener('click', closeModalFn);
-
-            // Edit item
-            window.editItem = function (id) {
-                const item = menuItems.find(i => i.id === id);
-                if (item) openModal(item);
-            };
-
-            // Delete item
-            window.deleteItem = async function (id) {
-                if (!confirm('Are you sure you want to delete this item?')) return;
-
-                try {
-                    const response = await fetch('https://gourmet-bites.vercel.app/api/menu/manage', {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id })
-                    });
-
-                    if (response.ok) {
-                        menuItems = menuItems.filter(i => i.id !== id);
-                        renderMenu();
-                    } else {
-                        console.error('Failed to delete item');
-                    }
-                } catch (error) {
-                    console.error('Error deleting item:', error);
-                }
-            };
-
-            // Save item
-            itemForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-
-                const itemData = {
-                    name: document.getElementById('item-name').value,
-                    description: document.getElementById('item-description').value,
-                    price: parseFloat(document.getElementById('item-price').value),
-                    category: document.getElementById('item-category').value,
-                    image: document.getElementById('item-image').value
-                };
-
-                try {
-                    const url = 'https://gourmet-bites.vercel.app/api/menu/manage';
-
-                    if (editingItemId) {
-                        // Update existing item
-                        const response = await fetch(url, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ ...itemData, id: editingItemId })
-                        });
-
-                        if (response.ok) {
-                            // Reload menu to get fresh data
-                            loadMenu();
-                        } else {
-                            throw new Error('Failed to update');
-                        }
-                    } else {
-                        // Add new item
-                        const response = await fetch(url, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(itemData)
-                        });
-
-                        if (response.ok) {
-                            loadMenu();
-                        } else {
-                            throw new Error('Failed to create');
-                        }
+                    font-size: 24px;
                     }
 
-                    closeModalFn();
-                } catch (error) {
-                    console.error('Error saving item:', error);
-                }
-            });
-
-            // Default menu (fallback)
-            function getDefaultMenu() {
-                return [
-                    {
-                        id: 1,
-                        name: "Classic Burger",
-                        description: "Juicy beef patty with fresh lettuce, tomato, and special sauce",
-                        price: 12.99,
-                        category: "Burgers",
-                        image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800"
-                    },
-                    {
-                        id: 2,
-                        name: "Margherita Pizza",
-                        description: "Fresh mozzarella, basil, and tomato sauce on thin crust",
-                        price: 14.99,
-                        category: "Pizza",
-                        image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=800"
+                    .btn-close {
+                    background: none;
+                    border: none;
+                    color: var(--text-muted);
+                    font-size: 28px;
+                    cursor: pointer;
+                    padding: 0;
+                    width: 36px;
+                    height: 36px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 8px;
+                    transition: all 0.3s ease;
                     }
-                ];
-            }
-    </script>
-</body>
+
+                    .btn-close:hover {
+                    background: var(--surface-hover);
+                    color: var(--text);
+                    }
+
+                    .form-group {
+                    margin-bottom: 20px;
+                    }
+
+                    .form-group label {
+                    display: block;
+                    margin-bottom: 8px;
+                    font-weight: 500;
+                    color: var(--text-muted);
+                    }
+
+                    .form-group input,
+                    .form-group textarea,
+                    .form-group select {
+                    width: 100%;
+                    padding: 12px;
+                    background: var(--bg);
+                    border: 1px solid var(--border);
+                    border-radius: 12px;
+                    color: var(--text);
+                    font-size: 16px;
+                    font-family: 'Outfit', sans-serif;
+                    }
+
+                    .form-group textarea {
+                    min-height: 100px;
+                    resize: vertical;
+                    }
+
+                    .form-group input:focus,
+                    .form-group textarea:focus,
+                    .form-group select:focus {
+                    outline: none;
+                    border-color: var(--primary);
+                    }
+
+                    .modal-actions {
+                    display: flex;
+                    gap: 12px;
+                    margin-top: 24px;
+                    }
+
+                    .btn-cancel {
+                    flex: 1;
+                    padding: 12px;
+                    background: var(--surface-hover);
+                    color: var(--text);
+                    border: 1px solid var(--border);
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    }
+
+                    .btn-save {
+                    flex: 1;
+                    padding: 12px;
+                    background: var(--primary);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    }
+
+                    .btn-save:hover {
+                    background: var(--primary-hover);
+                    }
+                    </style>
+                    </head>
+
+                    <body>
+                        <!-- Login Screen -->
+                        <div class="login-screen active" id="login-screen">
+                            <div class="login-container">
+                                <div class="brand-logo">
+                                    <span class="material-icons-round">admin_panel_settings</span>
+                                </div>
+                                <h1>Admin Access</h1>
+                                <p class="subtitle">Authorized personnel only</p>
+
+                                <div class="input-group">
+                                    <span class="material-icons-round">person</span>
+                                    <input type="text" id="username" placeholder="Username" autocomplete="username">
+                                </div>
+
+                                <div class="input-group">
+                                    <span class="material-icons-round">lock</span>
+                                    <input type="password" id="password" placeholder="Password"
+                                        autocomplete="current-password">
+                                </div>
+
+                                <button class="btn-primary" id="login-btn">
+                                    <span class="material-icons-round">login</span>
+                                    Login as Admin
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Dashboard -->
+                        <div class="dashboard" id="dashboard">
+                            <div class="dashboard-header">
+                                <h1>
+                                    <span class="material-icons-round">restaurant_menu</span>
+                                    Menu Management
+                                </h1>
+                                <button class="btn-logout" id="logout-btn">
+                                    <span class="material-icons-round">logout</span>
+                                    Logout
+                                </button>
+                            </div>
+
+                            <div class="menu-grid" id="menu-grid">
+                                <!-- Menu items will be dynamically added here -->
+                            </div>
+                        </div>
+
+                        <!-- Edit/Add Item Modal -->
+                        <div class="modal" id="item-modal">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h2 id="modal-title">Add New Item</h2>
+                                    <button class="btn-close" id="close-modal">
+                                        <span class="material-icons-round">close</span>
+                                    </button>
+                                </div>
+
+                                <form id="item-form">
+                                    <div class="form-group">
+                                        <label>Item Name</label>
+                                        <input type="text" id="item-name" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Description</label>
+                                        <textarea id="item-description" required></textarea>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Price ($)</label>
+                                        <input type="number" id="item-price" step="0.01" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Category</label>
+                                        <select id="item-category" required>
+                                            <option value="Burgers">Burgers</option>
+                                            <option value="Pizza">Pizza</option>
+                                            <option value="Japanese">Japanese</option>
+                                            <option value="Indian">Indian</option>
+                                            <option value="Mexican">Mexican</option>
+                                            <option value="Chinese">Chinese</option>
+                                            <option value="Italian">Italian</option>
+                                            <option value="Thai">Thai</option>
+                                            <option value="Western">Western</option>
+                                            <option value="Mediterranean">Mediterranean</option>
+                                            <option value="Starters">Starters</option>
+                                            <option value="Salads">Salads</option>
+                                            <option value="Desserts">Desserts</option>
+                                            <option value="Drinks">Drinks</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Image URL</label>
+                                        <input type="url" id="item-image" required>
+                                    </div>
+
+                                    <div class="modal-actions">
+                                        <button type="button" class="btn-cancel" id="cancel-btn">Cancel</button>
+                                        <button type="submit" class="btn-save">Save Item</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <script>
+                            // Admin credentials
+                            const ADMIN_CREDENTIALS = {
+                                username: 'sidplayer8',
+                                password: 'adithidumb'
+                            };
+
+                            // State
+                            let menuItems = [];
+                            let editingItemId = null;
+
+                            // Elements
+                            const loginScreen = document.getElementById('login-screen');
+                            const dashboard = document.getElementById('dashboard');
+                            const loginBtn = document.getElementById('login-btn');
+                            const logoutBtn = document.getElementById('logout-btn');
+                            const menuGrid = document.getElementById('menu-grid');
+                            const itemModal = document.getElementById('item-modal');
+                            const itemForm = document.getElementById('item-form');
+                            const closeModal = document.getElementById('close-modal');
+                            const cancelBtn = document.getElementById('cancel-btn');
+                            const modalTitle = document.getElementById('modal-title');
+
+                            // Check if already logged in
+                            if (localStorage.getItem('adminLoggedIn') === 'true') {
+                                showDashboard();
+                            }
+
+                            // Login
+                            loginBtn.addEventListener('click', () => {
+                                const username = document.getElementById('username').value.trim();
+                                const password = document.getElementById('password').value;
+
+                                if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                                    localStorage.setItem('adminLoggedIn', 'true');
+                                    showDashboard();
+                                } else {
+                                    alert('Invalid credentials. Access denied.');
+                                }
+                            });
+
+                            // Enter key login
+                            document.getElementById('password').addEventListener('keypress', (e) => {
+                                if (e.key === 'Enter') loginBtn.click();
+                            });
+
+                            // Logout
+                            logoutBtn.addEventListener('click', () => {
+                                localStorage.removeItem('adminLoggedIn');
+                                showLogin();
+                            });
+
+                            // Show/Hide screens
+                            function showLogin() {
+                                loginScreen.classList.add('active');
+                                dashboard.classList.remove('active');
+                            }
+
+                            function showDashboard() {
+                                loginScreen.classList.remove('active');
+                                dashboard.classList.add('active');
+                                loadMenu();
+                            }
+
+                            // Load menu from API
+                            async function loadMenu() {
+                                try {
+                                    // Point to the MAIN customer site API with cache buster
+                                    const response = await fetch('https://gourmet-bites.vercel.app/api/menu?t=' + new Date().getTime());
+                                    if (response.ok) {
+                                        const data = await response.json();
+                                        // Normalize data to ensure price is a number
+                                        menuItems = data.map(item => ({
+                                            ...item,
+                                            price: parseFloat(item.price) || 0
+                                        }));
+                                    } else {
+                                        console.error('Failed to load menu:', response.status);
+                                        // Silent fallback
+                                        menuItems = getDefaultMenu();
+                                    }
+                                    renderMenu();
+                                } catch (error) {
+                                    console.error('Error loading menu:', error);
+                                    // Silent fallback
+                                    menuItems = getDefaultMenu();
+                                    renderMenu();
+                                }
+                            }
+
+                            // Render menu
+                            function renderMenu() {
+                                menuGrid.innerHTML = '';
+
+                                // Add new item card
+                                const addCard = document.createElement('div');
+                                addCard.className = 'menu-card add-new';
+                                addCard.innerHTML = `
+                <span class="material-icons-round">add_circle</span>
+                <h3>Add New Item</h3>
+            `;
+                                addCard.addEventListener('click', () => openModal());
+                                menuGrid.appendChild(addCard);
+
+                                // Render menu items
+                                menuItems.forEach(item => {
+                                    try {
+                                        if (!item || typeof item !== 'object') return;
+
+                                        // Safe defaults
+                                        const name = item.name || 'Unknown Item';
+                                        const image = item.image || 'https://via.placeholder.com/150';
+                                        const description = item.description || '';
+                                        const category = item.category || 'Uncategorized';
+                                        const priceVal = parseFloat(item.price);
+                                        const price = isNaN(priceVal) ? '0.00' : priceVal.toFixed(2);
+
+                                        const card = document.createElement('div');
+                                        card.className = 'menu-card';
+                                        card.innerHTML = `
+                        <img src="${image}" alt="${name}" class="card-image" onerror="this.src='https://via.placeholder.com/150'">
+                        <div class="card-content">
+                            <h3>${name}</h3>
+                            <p>${description}</p>
+                            <div class="card-meta">
+                                <span class="price">$${price}</span>
+                                <span class="category-badge">${category}</span>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn-edit" onclick="editItem(${item.id})">
+                                    <span class="material-icons-round">edit</span>
+                                    Edit
+                                </button>
+                                <button class="btn-delete" onclick="deleteItem(${item.id})">
+                                    <span class="material-icons-round">delete</span>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                                        menuGrid.appendChild(card);
+                                    } catch (err) {
+                                        console.error('Error rendering item:', item, err);
+                                    }
+                                });
+                            }
+
+                            // Modal functions
+                            function openModal(item = null) {
+                                editingItemId = item ? item.id : null;
+                                modalTitle.textContent = item ? 'Edit Item' : 'Add New Item';
+
+                                if (item) {
+                                    document.getElementById('item-name').value = item.name;
+                                    document.getElementById('item-description').value = item.description;
+                                    document.getElementById('item-price').value = item.price;
+                                    document.getElementById('item-category').value = item.category;
+                                    document.getElementById('item-image').value = item.image;
+                                } else {
+                                    itemForm.reset();
+                                }
+
+                                itemModal.classList.add('active');
+                            }
+
+                            function closeModalFn() {
+                                itemModal.classList.remove('active');
+                                editingItemId = null;
+                                itemForm.reset();
+                            }
+
+                            closeModal.addEventListener('click', closeModalFn);
+                            cancelBtn.addEventListener('click', closeModalFn);
+
+                            // Edit item
+                            window.editItem = function (id) {
+                                const item = menuItems.find(i => i.id === id);
+                                if (item) openModal(item);
+                            };
+
+                            // Delete item
+                            window.deleteItem = async function (id) {
+                                if (!confirm('Are you sure you want to delete this item?')) return;
+
+                                try {
+                                    const response = await fetch('https://gourmet-bites.vercel.app/api/menu/manage', {
+                                        method: 'DELETE',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ id })
+                                    });
+
+                                    if (response.ok) {
+                                        menuItems = menuItems.filter(i => i.id !== id);
+                                        renderMenu();
+                                    } else {
+                                        console.error('Failed to delete item');
+                                    }
+                                } catch (error) {
+                                    console.error('Error deleting item:', error);
+                                }
+                            };
+
+                            // Save item
+                            itemForm.addEventListener('submit', async (e) => {
+                                e.preventDefault();
+
+                                const itemData = {
+                                    name: document.getElementById('item-name').value,
+                                    description: document.getElementById('item-description').value,
+                                    price: parseFloat(document.getElementById('item-price').value),
+                                    category: document.getElementById('item-category').value,
+                                    image: document.getElementById('item-image').value
+                                };
+
+                                try {
+                                    const url = 'https://gourmet-bites.vercel.app/api/menu/manage';
+
+                                    if (editingItemId) {
+                                        // Update existing item
+                                        const response = await fetch(url, {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ ...itemData, id: editingItemId })
+                                        });
+
+                                        if (response.ok) {
+                                            // Reload menu to get fresh data
+                                            loadMenu();
+                                        } else {
+                                            throw new Error('Failed to update');
+                                        }
+                                    } else {
+                                        // Add new item
+                                        const response = await fetch(url, {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify(itemData)
+                                        });
+
+                                        if (response.ok) {
+                                            loadMenu();
+                                        } else {
+                                            throw new Error('Failed to create');
+                                        }
+                                    }
+
+                                    closeModalFn();
+                                } catch (error) {
+                                    console.error('Error saving item:', error);
+                                }
+                            });
+
+                            // Default menu (fallback)
+                            function getDefaultMenu() {
+                                return [
+                                    {
+                                        id: 1,
+                                        name: "Classic Burger",
+                                        description: "Juicy beef patty with fresh lettuce, tomato, and special sauce",
+                                        price: 12.99,
+                                        category: "Burgers",
+                                        image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800"
+                                    },
+                                    {
+                                        id: 2,
+                                        name: "Margherita Pizza",
+                                        description: "Fresh mozzarella, basil, and tomato sauce on thin crust",
+                                        price: 14.99,
+                                        category: "Pizza",
+                                        image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=800"
+                                    }
+                                ];
+                            }
+                        </script>
+                    </body>
 
 </html>
