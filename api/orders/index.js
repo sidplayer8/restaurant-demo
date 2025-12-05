@@ -1,28 +1,7 @@
 const { sql } = require('@vercel/postgres');
 
-module.exports = async function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    if (req.method === 'OPTIONS') {
-        // User sees only their orders
-        result = await sql`SELECT * FROM orders WHERE user_id = ${user_id} ORDER BY created_at DESC`;
-    } else {
-        return res.status(400).json({ error: 'user_id or is_admin required' });
-    }
-
-    return res.status(200).json(result.rows);
-
-} else if (req.method === 'POST') {
-    // Create new order
-    const { user_id, user_phone, items, total, status } = req.body;
-
-    const result = await sql`
-        INSERT INTO orders (user_id, user_phone, items, total, status)
-        VALUES (${user_id}, ${user_phone || null}, ${JSON.stringify(items)}, ${total}, ${status || 'pending'})
-        RETURNING *
-      `;
+RETURNING *
+    `;
 
     return res.status(201).json(result.rows[0]);
 
