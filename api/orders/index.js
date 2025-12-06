@@ -152,26 +152,63 @@ module.exports = async function handler(req, res) {
                 return res.status(400).json({ error: 'Order ID required' });
             }
 
-            // Update timestamps based on status
-            let timestamps = {};
-            if (status === 'confirmed') timestamps.confirmed_at = 'CURRENT_TIMESTAMP';
-            if (status === 'preparing') timestamps.preparing_at = 'CURRENT_TIMESTAMP';
-            if (status === 'ready') timestamps.ready_at = 'CURRENT_TIMESTAMP';
-            if (status === 'completed') timestamps.completed_at = 'CURRENT_TIMESTAMP';
-
-            const timestampUpdates = Object.keys(timestamps).map(key => `${key} = ${timestamps[key]}`).join(', ');
-            const additionalUpdates = timestampUpdates ? `, ${timestampUpdates}` : '';
-
-            const result = await sql.unsafe(`
-                UPDATE orders
-                SET status = COALESCE('${status}', status),
-                    assigned_chef = COALESCE(${assigned_chef || null}, assigned_chef),
-                    assigned_waiter = COALESCE(${assigned_waiter || null}, assigned_waiter),
-                    updated_at = CURRENT_TIMESTAMP
-                    ${additionalUpdates}
-                WHERE id = ${id}
-                RETURNING *
-            `);
+            // Build update query with proper timestamp handling
+            let result;
+            if (status === 'confirmed') {
+                result = await sql`
+                    UPDATE orders
+                    SET status = COALESCE(${status}, status),
+                        assigned_chef = COALESCE(${assigned_chef || null}, assigned_chef),
+                        assigned_waiter = COALESCE(${assigned_waiter || null}, assigned_waiter),
+                        confirmed_at = CURRENT_TIMESTAMP,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ${id}
+                    RETURNING *
+                `;
+            } else if (status === 'preparing') {
+                result = await sql`
+                    UPDATE orders
+                    SET status = COALESCE(${status}, status),
+                        assigned_chef = COALESCE(${assigned_chef || null}, assigned_chef),
+                        assigned_waiter = COALESCE(${assigned_waiter || null}, assigned_waiter),
+                        preparing_at = CURRENT_TIMESTAMP,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ${id}
+                    RETURNING *
+                `;
+            } else if (status === 'ready') {
+                result = await sql`
+                    UPDATE orders
+                    SET status = COALESCE(${status}, status),
+                        assigned_chef = COALESCE(${assigned_chef || null}, assigned_chef),
+                        assigned_waiter = COALESCE(${assigned_waiter || null}, assigned_waiter),
+                        ready_at = CURRENT_TIMESTAMP,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ${id}
+                    RETURNING *
+                `;
+            } else if (status === 'completed') {
+                result = await sql`
+                    UPDATE orders
+                    SET status = COALESCE(${status}, status),
+                        assigned_chef = COALESCE(${assigned_chef || null}, assigned_chef),
+                        assigned_waiter = COALESCE(${assigned_waiter || null}, assigned_waiter),
+                        completed_at = CURRENT_TIMESTAMP,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ${id}
+                    RETURNING *
+                `;
+            } else {
+                result = await sql`
+                    UPDATE orders
+                    SET status = COALESCE(${status}, status),
+                        assigned_chef = COALESCE(${assigned_chef || null}, assigned_chef),
+                        assigned_waiter = COALESCE(${assigned_waiter || null}, assigned_waiter),
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ${id}
+                    RETURNING *
+                `;
+            }
 
             if (result.rows.length === 0) {
                 return res.status(404).json({ error: 'Order not found' });
