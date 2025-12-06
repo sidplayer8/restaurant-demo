@@ -593,25 +593,42 @@
                 });
                 const ordersData = await ordersRes.json();
 
+                if (ordersData.error) {
+                    throw new Error(ordersData.error);
+                }
+
                 // Update stats
-                document.getElementById('totalOrders').textContent = ordersData.statistics.total_orders || 0;
-                document.getElementById('pendingOrders').textContent = ordersData.statistics.pending_count || 0;
-                document.getElementById('totalRevenue').textContent = '$' + (parseFloat(ordersData.statistics.total_revenue) || 0).toFixed(2);
+                if (ordersData.statistics) {
+                    document.getElementById('totalOrders').textContent = ordersData.statistics.total_orders || 0;
+                    document.getElementById('pendingOrders').textContent = ordersData.statistics.pending_count || 0;
+                    document.getElementById('totalRevenue').textContent = '$' + (parseFloat(ordersData.statistics.total_revenue) || 0).toFixed(2);
+                }
 
                 // Load users count
                 const usersRes = await fetch(`${API_BASE}/admin/users`, {
                     headers: { 'X-User-ID': currentUserId }
                 });
                 const usersData = await usersRes.json();
-                const staffCount = usersData.users.filter(u => ['owner', 'chef', 'waiter'].includes(u.role)).length;
-                document.getElementById('totalStaff').textContent = staffCount;
+
+                if (usersData.error) {
+                    throw new Error(usersData.error);
+                }
+
+                if (usersData.users) {
+                    const staffCount = usersData.users.filter(u => ['owner', 'chef', 'waiter'].includes(u.role)).length;
+                    document.getElementById('totalStaff').textContent = staffCount;
+                }
 
                 // Show recent orders
-                const recentOrders = ordersData.orders.slice(0, 5);
-                renderRecentOrders(recentOrders);
+                if (ordersData.orders) {
+                    const recentOrders = ordersData.orders.slice(0, 5);
+                    renderRecentOrders(recentOrders);
+                }
 
             } catch (error) {
                 console.error('Error loading overview:', error);
+                alert('⚠️ Authentication Error!\n\n' + error.message + '\n\nPlease go to setup-auth.html and initialize your accounts first.');
+                window.location.href = 'setup-auth.html';
             }
         }
 

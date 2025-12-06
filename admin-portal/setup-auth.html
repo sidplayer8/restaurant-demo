@@ -140,6 +140,13 @@
         <p>Set your user ID to access the admin dashboards. Use "1" for Owner access (full permissions).</p>
 
         <div class="section">
+            <h2>🚀 First Time Setup</h2>
+            <p style="font-size: 14px; margin-bottom: 15px;">Click this button first to create default admin accounts in the database:</p>
+            <button onclick="initializeAccounts()" style="background: #10b981;">Initialize Database Accounts</button>
+            <div id="initStatus" class="status"></div>
+        </div>
+
+        <div class="section">
             <h2>Quick Setup (Owner)</h2>
             <input type="number" id="ownerId" placeholder="Enter your user ID (default: 1)" value="1">
             <button onclick="setupOwner()">Set as Owner</button>
@@ -180,6 +187,40 @@
     </div>
 
     <script>
+        const API_BASE = 'https://gourmet-bites.vercel.app/api';
+
+        async function initializeAccounts() {
+            const statusEl = document.getElementById('initStatus');
+            statusEl.textContent = '⏳ Creating database accounts...';
+            statusEl.className = 'status';
+            statusEl.style.display = 'block';
+            statusEl.style.background = '#3b82f6';
+
+            try {
+                const response = await fetch(`${API_BASE}/setup/init-users`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.accounts) {
+                    // Auto-set the IDs
+                    document.getElementById('ownerId').value = data.accounts.owner.id;
+                    document.getElementById('chefId').value = data.accounts.chef.id;
+                    document.getElementById('waiterId').value = data.accounts.waiter.id;
+
+                    showStatus('initStatus',
+                        `✅ Accounts created!\nOwner ID: ${data.accounts.owner.id}\nChef ID: ${data.accounts.chef.id}\nWaiter ID: ${data.accounts.waiter.id}\n\nNow click "Set as Owner" below.`,
+                        'success');
+                } else if (data.ownerId) {
+                    showStatus('initStatus', `ℹ️ Accounts already exist. Owner ID: ${data.ownerId}`, 'success');
+                } else {
+                    showStatus('initStatus', `✅ ${data.message}`, 'success');
+                }
+            } catch (error) {
+                showStatus('initStatus', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
         function setupOwner() {
             const userId = document.getElementById('ownerId').value || '1';
             localStorage.setItem('ownerId', userId);
