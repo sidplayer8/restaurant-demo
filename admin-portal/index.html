@@ -803,33 +803,35 @@
                             const cancelBtn = document.getElementById('cancel-btn');
                             const modalTitle = document.getElementById('modal-title');
 
-                            // Check if already logged in
-                            if (localStorage.getItem('adminLoggedIn') === 'true') {
-                                showDashboard();
+                            // Check if user is logged in via new staff login system
+                            const currentUserId = localStorage.getItem('currentUserId');
+                            if (!currentUserId) {
+                                // Redirect to staff login page
+                                window.location.href = 'login.html';
+                                return;
                             }
 
-                            // Login
-                            loginBtn.addEventListener('click', () => {
-                                const username = document.getElementById('username').value.trim();
-                                const password = document.getElementById('password').value;
-
-                                if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-                                    localStorage.setItem('adminLoggedIn', 'true');
-                                    showDashboard();
+                            // Check if user has permission to manage menu
+                            const userRole = localStorage.getItem('userRole');
+                            if (userRole !== 'owner') {
+                                alert('Only owners can manage the menu. Redirecting to your dashboard...');
+                                if (userRole === 'chef') {
+                                    window.location.href = 'chef.html';
+                                } else if (userRole === 'waiter') {
+                                    window.location.href = 'waiter.html';
                                 } else {
-                                    alert('Invalid credentials. Access denied.');
+                                    window.location.href = 'login.html';
                                 }
-                            });
+                                return;
+                            }
 
-                            // Enter key login
-                            document.getElementById('password').addEventListener('keypress', (e) => {
-                                if (e.key === 'Enter') loginBtn.click();
-                            });
+                            // User is authenticated and authorized
+                            showDashboard();
 
                             // Logout
                             logoutBtn.addEventListener('click', () => {
-                                localStorage.removeItem('adminLoggedIn');
-                                showLogin();
+                                localStorage.clear();
+                                window.location.href = 'login.html';
                             });
 
                             // Show/Hide screens
