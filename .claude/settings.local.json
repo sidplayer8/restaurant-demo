@@ -19,7 +19,9 @@
       "Bash(node fix-menu-items.js:*)",
       "Bash(curl:*)",
       "Bash(node:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
